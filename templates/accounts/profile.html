@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container my-4" style="max-width: 600px;">
+  <h2>My Profile</h2>
+  <table class="table">
+    <tr><th>Full name</th><td>{{ profile_user.full_name }}</td></tr>
+    <tr><th>Email</th><td>{{ profile_user.email }}</td></tr>
+    <tr><th>Phone</th><td>{{ profile_user.phone|default:"Not set" }}</td></tr>
+    <tr><th>Barangay</th><td>{{ profile_user.barangay }}</td></tr>
+    <tr><th>Role</th><td>{{ profile_user.get_role_display }}</td></tr>
+    <tr><th>Member since</th><td>{{ profile_user.created_at|date:"M d, Y" }}</td></tr>
+  </table>
+  <a href="{% url 'profile_edit' %}" class="btn btn-primary">Edit profile</a>
+</div>
+{% endblock %}

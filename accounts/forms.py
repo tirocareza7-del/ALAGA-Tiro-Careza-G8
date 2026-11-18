@@ -89,3 +89,25 @@ class EmailLoginForm(AuthenticationForm):
 
     def clean_username(self):
         return self.cleaned_data["username"].strip().lower()
+
+class ProfileUpdateForm(forms.ModelForm):
+    phone = forms.CharField(
+        required=False,
+        max_length=20,
+        validators=[RegexValidator(r"^\+?[0-9\s-]{7,20}$", "Enter a valid phone number.")],
+    )
+
+    class Meta:
+        model = AppUser
+        fields = ["full_name", "email", "phone"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        add_bootstrap_classes(self)
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        taken = AppUser.objects.filter(email__iexact=email).exclude(pk=self.instance.pk)
+        if taken.exists():
+            raise forms.ValidationError("An account with this email already exists.")
+        return email
