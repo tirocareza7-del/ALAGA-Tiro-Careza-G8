@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<h1 class="h3">Admin Dashboard</h1>
+<p class="text-muted">Overview of the ALAGA system.</p>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="card shadow-sm text-center"><div class="card-body">
+    <div class="display-6">{{ total_users }}</div><div class="text-muted">Total users</div>
+  </div></div></div>
+  <div class="col-6 col-md-3"><div class="card shadow-sm text-center"><div class="card-body">
+    <div class="display-6">{{ resident_count }}</div><div class="text-muted">Residents</div>
+  </div></div></div>
+  <div class="col-6 col-md-3"><div class="card shadow-sm text-center"><div class="card-body">
+    <div class="display-6">{{ admin_count }}</div><div class="text-muted">Admins</div>
+  </div></div></div>
+  <div class="col-6 col-md-3"><div class="card shadow-sm text-center"><div class="card-body">
+    <div class="display-6">{{ suspended_count }}</div><div class="text-muted">Suspended</div>
+  </div></div></div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header">Newest users</div>
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead><tr><th>Name</th><th>Email</th><th>Barangay</th><th>Role</th><th>Joined</th></tr></thead>
+      <tbody>
+        {% for u in recent_users %}
+          <tr>
+            <td>{{ u.full_name }}</td><td>{{ u.email }}</td><td>{{ u.barangay.name }}</td>
+            <td>{{ u.get_role_display }}</td><td>{{ u.created_at|date:"M d, Y" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
