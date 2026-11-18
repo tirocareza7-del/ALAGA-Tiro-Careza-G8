@@ -24,7 +24,7 @@ def register(request):
 
 def logout_view(request):
     if request.method == "POST":
-        logout(request)  # ends the session
+        logout(request)  
         messages.success(request, "You have been logged out.")
     return redirect("login")
 

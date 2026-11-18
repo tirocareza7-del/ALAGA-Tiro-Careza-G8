@@ -28,7 +28,7 @@ class RegistrationForm(forms.ModelForm):
     barangay = forms.ModelChoiceField(
         queryset=Barangay.objects.filter(is_pilot=True),
         empty_label="Select your barangay",
-    )  # BR-04: exactly one pilot barangay
+    )
     phone = forms.CharField(
         required=False,
         max_length=20,
@@ -46,7 +46,7 @@ class RegistrationForm(forms.ModelForm):
 
     def clean_email(self):
         email = self.cleaned_data["email"].strip().lower()
-        if AppUser.objects.filter(email__iexact=email).exists():  # BR-01
+        if AppUser.objects.filter(email__iexact=email).exists(): 
             raise forms.ValidationError("An account with this email already exists.")
         return email
 
@@ -60,7 +60,7 @@ class RegistrationForm(forms.ModelForm):
     def _post_clean(self):
         super()._post_clean()
         password = self.cleaned_data.get("password2")
-        if password:  # BR-02: min 8 characters and other Django validators
+        if password: 
             try:
                 password_validation.validate_password(password, self.instance)
             except forms.ValidationError as error:
@@ -68,7 +68,7 @@ class RegistrationForm(forms.ModelForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.set_password(self.cleaned_data["password1"])  # hashed, never plain text
+        user.set_password(self.cleaned_data["password1"])  
         if commit:
             user.save()
         return user
