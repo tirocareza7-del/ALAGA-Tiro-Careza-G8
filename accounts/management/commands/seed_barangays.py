@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 
 from accounts.models import Barangay
 
-# EDIT THIS LIST: replace with your project's real pilot barangays.
+
 PILOT_BARANGAYS = ["Lahug", "Guadalupe", "Mabolo"]
 
 

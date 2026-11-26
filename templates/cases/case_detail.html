@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Case #{{ case.pk }}{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+{% endblock %}
+{% block content %}
+<a href="{% if user.role == 'admin' %}{% url 'case_community' %}{% else %}{% url 'case_list' %}{% endif %}" class="text-decoration-none">&larr; Back</a>
+
+<div class="card shadow-sm mt-2">
+  <div class="card-body p-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+      <div>
+        <h1 class="h4 mb-2">{{ case.get_case_type_display }}: {{ case.get_animal_type_display }}</h1>
+        <span class="badge {{ case.urgency_badge }}">{{ case.get_urgency_level_display }} urgency</span>
+        <span class="badge {{ case.status_badge }}">{{ case.get_status_display }}</span>
+        {% if case.is_hidden %}<span class="badge bg-dark">Hidden</span>{% endif %}
+      </div>
+      <small class="text-muted">Case #{{ case.pk }}</small>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-6">
+        {% if case.photos.all %}
+          <div id="photos" class="carousel slide">
+            <div class="carousel-inner rounded">
+              {% for photo in case.photos.all %}
+                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                  <img src="{{ photo.photo.url }}" class="d-block w-100" alt="Photo {{ forloop.counter }}" style="max-height:380px;object-fit:cover;">
+                </div>
+              {% endfor %}
+            </div>
+            {% if case.photos.all|length > 1 %}
+              <button class="carousel-control-prev" type="button" data-bs-target="#photos" data-bs-slide="prev"><span class="carousel-control-prev-icon"></span></button>
+              <button class="carousel-control-next" type="button" data-bs-target="#photos" data-bs-slide="next"><span class="carousel-control-next-icon"></span></button>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="col-lg-6">
+        <h2 class="h6">Description</h2>
+        <p style="white-space: pre-line;">{{ case.description }}</p>
+
+        <dl class="row mb-0">
+          <dt class="col-sm-4">Barangay</dt><dd class="col-sm-8">{{ case.barangay }}</dd>
+          {% if case.address_note %}
+            <dt class="col-sm-4">Landmark</dt><dd class="col-sm-8">{{ case.address_note }}</dd>
+          {% endif %}
+          <dt class="col-sm-4">Reported by</dt><dd class="col-sm-8">{{ case.reporter.full_name }}</dd>
+          <dt class="col-sm-4">Posted</dt><dd class="col-sm-8">{{ case.posted_at|date:"M d, Y g:i A" }}</dd>
+          {% if case.resolved_at %}
+            <dt class="col-sm-4">Resolved</dt><dd class="col-sm-8">{{ case.resolved_at|date:"M d, Y g:i A" }}</dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+
+    <h2 class="h6 mt-4">Location</h2>
+    <div id="map" class="rounded border" style="height:300px;"></div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  var pin = [{{ case.latitude|stringformat:"s" }}, {{ case.longitude|stringformat:"s" }}];
+  var map = L.map("map").setView(pin, 16);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "&copy; OpenStreetMap contributors"
+  }).addTo(map);
+  L.marker(pin).addTo(map);
+</script>
+{% endblock %}
