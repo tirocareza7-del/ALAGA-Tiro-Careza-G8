@@ -25,6 +25,12 @@
               {% endfor %}
             </div>
           {% endfor %}
+
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="showPassword">
+            <label class="form-check-label" for="showPassword">Show password</label>
+          </div>
+
           <button type="submit" class="btn btn-success w-100">Log in</button>
         </form>
 
@@ -33,4 +39,11 @@
     </div>
   </div>
 </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+  document.getElementById("showPassword").addEventListener("change", function () {
+    document.getElementById("id_password").type = this.checked ? "text" : "password";
+  });
+</script>
 {% endblock %}

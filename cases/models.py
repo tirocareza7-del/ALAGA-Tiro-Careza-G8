@@ -1,6 +1,3 @@
-"""
-Core feature: Animal Case Reporting & Tracking (SDD module 2.0, BR-06 to BR-15).
-"""
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
@@ -37,19 +34,19 @@ class AnimalCase(models.Model):
     )
     barangay = models.ForeignKey(
         Barangay, on_delete=models.PROTECT, related_name="cases"
-    ) 
+    )
     case_type = models.CharField(max_length=20, choices=CaseType.choices)
     animal_type = models.CharField(max_length=50, choices=AnimalType.choices)
     description = models.TextField()
     urgency_level = models.CharField(max_length=20, choices=Urgency.choices)
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.OPEN
-    )  
+    )
     latitude = models.DecimalField(max_digits=9, decimal_places=6)
     longitude = models.DecimalField(max_digits=9, decimal_places=6)
     address_note = models.CharField(max_length=255, null=True, blank=True)
-    is_hidden = models.BooleanField(default=False)  
-    posted_at = models.DateTimeField(auto_now_add=True)  
+    is_hidden = models.BooleanField(default=False)
+    posted_at = models.DateTimeField(auto_now_add=True)
     resolved_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -70,7 +67,6 @@ class AnimalCase(models.Model):
 
     def get_absolute_url(self):
         return reverse("case_detail", args=[self.pk])
-
 
     @property
     def urgency_badge(self):
@@ -99,3 +95,26 @@ class CasePhoto(models.Model):
 
     def __str__(self):
         return f"Photo {self.pk} of case {self.case_id}"
+
+
+class CaseStatusHistory(models.Model):
+    case = models.ForeignKey(
+        AnimalCase, on_delete=models.CASCADE, related_name="status_history"
+    )
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="case_status_changes",
+    )
+    old_status = models.CharField(
+        max_length=20, choices=AnimalCase.Status.choices, null=True, blank=True
+    )
+    new_status = models.CharField(max_length=20, choices=AnimalCase.Status.choices)
+    changed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["changed_at", "pk"]
+        verbose_name_plural = "case status history"
+
+    def __str__(self):
+        return f"Case {self.case_id}: {self.old_status} to {self.new_status}"

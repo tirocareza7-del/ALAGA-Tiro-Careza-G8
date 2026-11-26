@@ -1,28 +1,20 @@
-from decimal import Decimal
-
 from django import forms
 from django.utils import timezone
 
 from accounts.models import Barangay
 
-from .models import AnimalCase
+from .models import AnimalCase, CasePhoto
 
-MAX_PHOTOS = 3                     
+MAX_PHOTOS = 3
 MAX_PHOTO_MB = 5
-MAX_CASES_PER_DAY = 10            
-
+MAX_CASES_PER_DAY = 10
 PILOT_MIN_LAT, PILOT_MAX_LAT = 10.20, 10.50
 PILOT_MIN_LNG, PILOT_MAX_LNG = 123.70, 124.00
 
 
 def add_bootstrap_classes(form):
     for field in form.fields.values():
-        if isinstance(field.widget, forms.Select):
-            css = "form-select"
-        elif isinstance(field.widget, forms.ClearableFileInput):
-            css = "form-control"
-        else:
-            css = "form-control"
+        css = "form-select" if isinstance(field.widget, forms.Select) else "form-control"
         field.widget.attrs["class"] = css
 
 
@@ -31,8 +23,6 @@ class MultipleFileInput(forms.ClearableFileInput):
 
 
 class MultipleImageField(forms.ImageField):
-    """An image field that accepts several files at once."""
-
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("widget", MultipleFileInput())
         super().__init__(*args, **kwargs)
@@ -52,7 +42,15 @@ class CaseForm(forms.ModelForm):
     photos = MultipleImageField(
         required=False,
         label="Photos",
-        help_text=f"Upload 1 to {MAX_PHOTOS} photos (max {MAX_PHOTO_MB} MB each).",
+        help_text=(
+            f"A case needs 1 to {MAX_PHOTOS} photos (max {MAX_PHOTO_MB} MB each). "
+            "To pick several at once, hold Ctrl (or Shift) while clicking the photos."
+        ),
+    )
+    remove_photos = forms.ModelMultipleChoiceField(
+        queryset=CasePhoto.objects.none(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
     )
 
     class Meta:
@@ -86,8 +84,12 @@ class CaseForm(forms.ModelForm):
         self.fields["urgency_level"].choices = [("", "Select...")] + list(
             AnimalCase.Urgency.choices
         )
-        if user and not self.instance.pk:
-            self.fields["barangay"].initial = user.barangay_id
+        if self.instance.pk:
+            self.fields["remove_photos"].queryset = self.instance.photos.all()
+        else:
+            del self.fields["remove_photos"]
+            if user:
+                self.fields["barangay"].initial = user.barangay_id
 
     def clean_description(self):
         text = self.cleaned_data["description"].strip()
@@ -99,10 +101,6 @@ class CaseForm(forms.ModelForm):
 
     def clean_photos(self):
         photos = [p for p in (self.cleaned_data.get("photos") or []) if p]
-        if not photos and not self.instance.pk:
-            raise forms.ValidationError("Please upload at least 1 photo (BR-07).")
-        if len(photos) > MAX_PHOTOS:
-            raise forms.ValidationError(f"You can upload at most {MAX_PHOTOS} photos.")
         for p in photos:
             if p.size > MAX_PHOTO_MB * 1024 * 1024:
                 raise forms.ValidationError(
@@ -125,7 +123,23 @@ class CaseForm(forms.ModelForm):
                     "Click the map to place it.",
                 )
 
-        
+        if "photos" in cleaned:
+            editing = bool(self.instance.pk)
+            removed = len(cleaned.get("remove_photos") or [])
+            kept = self.instance.photos.count() - removed if editing else 0
+            total = kept + len(cleaned["photos"])
+            if total < 1:
+                self.add_error(
+                    "photos",
+                    "A case must keep at least 1 photo."
+                    if editing
+                    else "Please upload at least 1 photo.",
+                )
+            elif total > MAX_PHOTOS:
+                self.add_error(
+                    "photos", f"A case can have at most {MAX_PHOTOS} photos."
+                )
+
         if self.user and not self.instance.pk:
             start_of_day = timezone.localtime().replace(
                 hour=0, minute=0, second=0, microsecond=0
