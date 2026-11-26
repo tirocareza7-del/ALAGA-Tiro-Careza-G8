@@ -1,0 +1,24 @@
+<div class="col-md-6 col-lg-4">
+  <div class="card h-100 shadow-sm">
+    {% with photo=case.photos.all|first %}
+      {% if photo %}
+        <img src="{{ photo.photo.url }}" class="card-img-top" alt="Photo of the animal" style="height:180px;object-fit:cover;">
+      {% else %}
+        <div class="bg-secondary-subtle d-flex align-items-center justify-content-center" style="height:180px;">No photo</div>
+      {% endif %}
+    {% endwith %}
+    <div class="card-body">
+      <div class="mb-2">
+        <span class="badge {{ case.urgency_badge }}">{{ case.get_urgency_level_display }}</span>
+        <span class="badge {{ case.status_badge }}">{{ case.get_status_display }}</span>
+        <span class="badge text-bg-light border">{{ case.get_case_type_display }}</span>
+      </div>
+      <h2 class="h6 mb-1">{{ case.get_animal_type_display }} &middot; {{ case.barangay.name }}</h2>
+      <p class="card-text text-muted small mb-0">{{ case.description|truncatechars:90 }}</p>
+    </div>
+    <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+      <small class="text-muted">{{ case.posted_at|timesince }} ago</small>
+      <a href="{{ case.get_absolute_url }}" class="btn btn-sm btn-outline-success">View</a>
+    </div>
+  </div>
+</div>

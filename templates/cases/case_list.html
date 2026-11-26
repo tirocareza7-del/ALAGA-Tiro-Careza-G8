@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}My Cases{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">My Cases</h1>
+  <a href="{% url 'case_create' %}" class="btn btn-success">+ Report an Animal</a>
+</div>
+
+{% if page_obj %}
+  <div class="row g-3">
+    {% for case in page_obj %}
+      {% include "cases/_case_card.html" %}
+    {% endfor %}
+  </div>
+  {% include "cases/_pagination.html" %}
+{% endif %}
+
+{% if not page_obj.object_list %}
+  <div class="card shadow-sm"><div class="card-body text-center text-muted py-5">
+    You haven't reported any animals yet.<br>
+    <a href="{% url 'case_create' %}">Report your first case</a>
+  </div></div>
+{% endif %}
+{% endblock %}
