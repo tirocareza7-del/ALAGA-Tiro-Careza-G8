@@ -1,14 +1,49 @@
 {% extends "base.html" %}
 {% block title %}My Dashboard{% endblock %}
 {% block content %}
-<h1 class="h3">Hello, {{ user.full_name }}!</h1>
-<p class="text-muted">Resident of {{ user.barangay }}</p>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="h3 mb-0">Hello, {{ user.full_name }}!</h1>
+    <p class="text-muted mb-0">Resident of {{ user.barangay }}</p>
+  </div>
+  <a href="{% url 'case_create' %}" class="btn btn-success">+ Report an Animal</a>
+</div>
 
-<div class="row g-3 mt-1">
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3"><div class="card shadow-sm text-center"><div class="card-body">
+    <div class="display-6">{{ my_total }}</div><div class="text-muted">My cases</div>
+  </div></div></div>
+  <div class="col-6 col-md-3"><div class="card shadow-sm text-center"><div class="card-body">
+    <div class="display-6">{{ my_open }}</div><div class="text-muted">Open</div>
+  </div></div></div>
+  <div class="col-6 col-md-3"><div class="card shadow-sm text-center"><div class="card-body">
+    <div class="display-6">{{ my_handled }}</div><div class="text-muted">Being handled</div>
+  </div></div></div>
+  <div class="col-6 col-md-3"><div class="card shadow-sm text-center"><div class="card-body">
+    <div class="display-6">{{ my_resolved }}</div><div class="text-muted">Resolved</div>
+  </div></div></div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <h2 class="h5 mb-0">Recent cases</h2>
+  <a href="{% url 'case_list' %}" class="small">View all</a>
+</div>
+<div class="row g-3 mb-4">
+  {% for case in recent_cases %}
+    {% include "cases/_case_card.html" %}
+  {% empty %}
+    <div class="col-12"><div class="card shadow-sm"><div class="card-body text-center text-muted py-4">
+      You haven't reported any animals yet. <a href="{% url 'case_create' %}">Report your first case</a>
+    </div></div></div>
+  {% endfor %}
+</div>
+
+<div class="row g-3">
   <div class="col-md-4">
     <div class="card h-100 shadow-sm"><div class="card-body">
-      <h2 class="h5">My Cases</h2>
-      <p class="text-muted mb-0">Animals you reported will appear here. Coming soon.</p>
+      <h2 class="h5">Community Cases</h2>
+      <p class="text-muted">See animals reported across the pilot barangays.</p>
+      <a href="{% url 'case_community' %}" class="btn btn-sm btn-outline-success">Browse</a>
     </div></div>
   </div>
   <div class="col-md-4">

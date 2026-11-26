@@ -4,6 +4,7 @@
 <h1 class="h3">Admin Dashboard</h1>
 <p class="text-muted">Overview of the ALAGA system.</p>
 
+<h2 class="h6 text-uppercase text-muted">Users</h2>
 <div class="row g-3 mb-4">
   <div class="col-6 col-md-3"><div class="card shadow-sm text-center"><div class="card-body">
     <div class="display-6">{{ total_users }}</div><div class="text-muted">Total users</div>
@@ -17,6 +18,51 @@
   <div class="col-6 col-md-3"><div class="card shadow-sm text-center"><div class="card-body">
     <div class="display-6">{{ suspended_count }}</div><div class="text-muted">Suspended</div>
   </div></div></div>
+</div>
+
+<h2 class="h6 text-uppercase text-muted">Cases</h2>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md"><div class="card shadow-sm text-center"><div class="card-body">
+    <div class="display-6">{{ case_total }}</div><div class="text-muted">Visible cases</div>
+  </div></div></div>
+  <div class="col-6 col-md"><div class="card shadow-sm text-center"><div class="card-body">
+    <div class="display-6">{{ case_open }}</div><div class="text-muted">Open</div>
+  </div></div></div>
+  <div class="col-6 col-md"><div class="card shadow-sm text-center"><div class="card-body">
+    <div class="display-6">{{ case_handled }}</div><div class="text-muted">Being handled</div>
+  </div></div></div>
+  <div class="col-6 col-md"><div class="card shadow-sm text-center"><div class="card-body">
+    <div class="display-6">{{ case_resolved }}</div><div class="text-muted">Resolved</div>
+  </div></div></div>
+  <div class="col-6 col-md"><div class="card shadow-sm text-center"><div class="card-body">
+    <div class="display-6">{{ case_hidden }}</div><div class="text-muted">Hidden</div>
+  </div></div></div>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>Latest cases</span>
+    <a href="{% url 'case_community' %}" class="small">View all</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table mb-0 align-middle">
+      <thead><tr><th>Case</th><th>Barangay</th><th>Reporter</th><th>Urgency</th><th>Status</th><th>Posted</th></tr></thead>
+      <tbody>
+        {% for c in recent_cases %}
+          <tr>
+            <td><a href="{{ c.get_absolute_url }}">#{{ c.pk }} {{ c.get_case_type_display }}: {{ c.get_animal_type_display }}</a>{% if c.is_hidden %} <span class="badge bg-dark">Hidden</span>{% endif %}</td>
+            <td>{{ c.barangay.name }}</td>
+            <td>{{ c.reporter.full_name }}</td>
+            <td><span class="badge {{ c.urgency_badge }}">{{ c.get_urgency_level_display }}</span></td>
+            <td><span class="badge {{ c.status_badge }}">{{ c.get_status_display }}</span></td>
+            <td>{{ c.posted_at|date:"M d, Y" }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-3">No cases yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <div class="card shadow-sm">
