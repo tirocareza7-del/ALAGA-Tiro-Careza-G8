@@ -14,7 +14,7 @@ def role_required(*allowed_roles):
         def wrapped(request, *args, **kwargs):
             if request.user.role not in allowed_roles:
                 messages.error(request, "You don't have access to that page.")
-                return redirect("dashboard")  # sends them to THEIR own dashboard
+                return redirect("dashboard")  
             return view_func(request, *args, **kwargs)
 
         return wrapped

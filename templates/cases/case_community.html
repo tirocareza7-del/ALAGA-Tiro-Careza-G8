@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Community Cases{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">{% if user.role == 'admin' %}All Cases{% else %}Community Cases{% endif %}</h1>
+
+<form method="get" class="card shadow-sm mb-4"><div class="card-body">
+  <div class="row g-2 align-items-end">
+    <div class="col-md-3">{{ filter_form.q }}</div>
+    <div class="col-md-2">{{ filter_form.case_type }}</div>
+    <div class="col-md-2">{{ filter_form.urgency_level }}</div>
+    <div class="col-md-2">{{ filter_form.status }}</div>
+    <div class="col-md-2">{{ filter_form.barangay }}</div>
+    <div class="col-md-1 d-grid"><button class="btn btn-success">Go</button></div>
+  </div>
+  <div class="mt-2"><a href="{% url 'case_community' %}" class="small">Clear filters</a></div>
+</div></form>
+
+<div class="row g-3">
+  {% for case in page_obj %}
+    {% include "cases/_case_card.html" %}
+  {% empty %}
+    <div class="col-12"><div class="card shadow-sm"><div class="card-body text-center text-muted py-5">
+      No cases match your filters.
+    </div></div></div>
+  {% endfor %}
+</div>
+{% include "cases/_pagination.html" %}
+{% endblock %}

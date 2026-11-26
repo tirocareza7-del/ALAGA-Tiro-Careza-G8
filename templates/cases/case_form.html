@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-1">{{ page_title }}</h1>
+        <p class="text-muted">Fields marked <span class="text-danger">*</span> are required.</p>
+
+        {% for error in form.non_field_errors %}
+          <div class="alert alert-danger py-2">{{ error }}</div>
+        {% endfor %}
+
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+
+          <div class="row">
+            <div class="col-md-6">{% include "cases/_field.html" with field=form.case_type %}</div>
+            <div class="col-md-6">{% include "cases/_field.html" with field=form.animal_type %}</div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">{% include "cases/_field.html" with field=form.urgency_level %}</div>
+            <div class="col-md-6">{% include "cases/_field.html" with field=form.barangay %}</div>
+          </div>
+          {% include "cases/_field.html" with field=form.description %}
+
+          <h2 class="h6 mt-4">Location</h2>
+          <p class="text-muted small mb-2">Click the map to drop a pin where the animal is.</p>
+          <div id="map" class="rounded border mb-3" style="height:320px;"></div>
+          <div class="row">
+            <div class="col-md-6">{% include "cases/_field.html" with field=form.latitude %}</div>
+            <div class="col-md-6">{% include "cases/_field.html" with field=form.longitude %}</div>
+          </div>
+          {% include "cases/_field.html" with field=form.address_note %}
+
+          <h2 class="h6 mt-4">Photos</h2>
+          {% if form.instance.pk and form.instance.photos.all %}
+            <p class="text-muted small mb-2">Tick a photo to remove it.</p>
+            <div class="row g-2 mb-3">
+              {% for photo in form.instance.photos.all %}
+                <div class="col-4 col-md-3">
+                  <label class="d-block border rounded p-1 text-center">
+                    <img src="{{ photo.photo.url }}" class="img-fluid rounded mb-1" alt="Photo {{ forloop.counter }}" style="height:90px;object-fit:cover;width:100%;">
+                    <input type="checkbox" name="remove_photos" value="{{ photo.pk }}" class="form-check-input">
+                    <span class="small">Remove</span>
+                  </label>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+          {% include "cases/_field.html" with field=form.photos %}
+          <div id="photoCount" class="small text-muted mb-1"></div>
+          <div id="photoPreview" class="d-flex flex-wrap gap-2 mb-3"></div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success">{% if form.instance.pk %}Save changes{% else %}Submit{% endif %}</button>
+            <a href="{% if form.instance.pk %}{{ form.instance.get_absolute_url }}{% else %}{% url 'case_list' %}{% endif %}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  var latInput = document.getElementById("id_latitude");
+  var lngInput = document.getElementById("id_longitude");
+  var hasPin = latInput.value !== "" && lngInput.value !== "";
+  var start = hasPin ? [parseFloat(latInput.value), parseFloat(lngInput.value)] : [10.3157, 123.8854];
+
+  var map = L.map("map").setView(start, 14);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "&copy; OpenStreetMap contributors"
+  }).addTo(map);
+
+  var marker = hasPin ? L.marker(start).addTo(map) : null;
+
+  function setPin(lat, lng) {
+    latInput.value = lat.toFixed(6);
+    lngInput.value = lng.toFixed(6);
+    if (marker) { marker.setLatLng([lat, lng]); }
+    else { marker = L.marker([lat, lng]).addTo(map); }
+  }
+
+  map.on("click", function (e) { setPin(e.latlng.lat, e.latlng.lng); });
+
+  function syncFromInputs() {
+    var la = parseFloat(latInput.value), ln = parseFloat(lngInput.value);
+    if (!isNaN(la) && !isNaN(ln)) {
+      if (marker) { marker.setLatLng([la, ln]); } else { marker = L.marker([la, ln]).addTo(map); }
+      map.setView([la, ln]);
+    }
+  }
+  latInput.addEventListener("change", syncFromInputs);
+  lngInput.addEventListener("change", syncFromInputs);
+
+  var photoInput = document.getElementById("id_photos");
+  var photoPreview = document.getElementById("photoPreview");
+  var photoCount = document.getElementById("photoCount");
+
+  photoInput.addEventListener("change", function () {
+    photoPreview.innerHTML = "";
+    var files = Array.from(photoInput.files);
+    files.forEach(function (file) {
+      var img = document.createElement("img");
+      img.src = URL.createObjectURL(file);
+      img.alt = file.name;
+      img.className = "rounded border";
+      img.style.width = "80px";
+      img.style.height = "80px";
+      img.style.objectFit = "cover";
+      photoPreview.appendChild(img);
+    });
+    photoCount.textContent = files.length ? files.length + " new photo(s) selected" : "";
+  });
+</script>
+{% endblock %}

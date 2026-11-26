@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Delete case{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4">Delete this case?</h1>
+        <p class="mb-1"><strong>{{ case.get_case_type_display }}: {{ case.get_animal_type_display }}</strong> in {{ case.barangay.name }}</p>
+        <p class="text-muted">{{ case.description|truncatechars:140 }}</p>
+        <p>The case will be hidden from everyone. Its history is kept in the system.</p>
+        <form method="post" class="d-flex gap-2">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Yes, delete</button>
+          <a href="{{ case.get_absolute_url }}" class="btn btn-outline-secondary">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
